@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="./data.js"></script>
+    <script src="./emg.js"></script>
+    <script src="./rip.js"></script>
+    <script src="./echarts.min.js"></script>
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="top">Stress × CCT experimental data dashboard</div>
+      <div class="nav" style="margin-left: 20px">
+        <div class="highLight" id="nav1" onclick="changeType(1,this)">
+          Low Stress
+        </div>
+        <div class="" id="nav2" onclick="changeType(2,this)">High Stress</div>
+      </div>
+      <div class="header">
+        <div id="fx_main" style="flex: 1; width: 33%; height: 48vh"></div>
+        <div id="fm_main" style="flex: 1; width: 33%; height: 48vh">
+          <div id="m_main" style="height: 24vh"></div>
+          <div id="f_main" style="height: 24vh"></div>
+        </div>
+        <div id="te_main" style="flex: 1; width: 33%; height: 48vh">
+          <div id="t_main" style="height: 30vh"></div>
+          <div id="e_main1" style="height: 18vh"></div>
+          <!-- <div id="e_main2" style="height: 115px"></div>
+          <div id="e_main3" style="height: 115px"></div> -->
+        </div>
+      </div>
+      <div class="body">
+        <div id="body_main" style="width: 100%; height: 20vh"></div>
+      </div>
+      <div class="footer">
+        <div id="footer_main" style="width: 100%; height: 20vh"></div>
+      </div>
+    </div>
+
+    <script>
+      let type = 1;
+      // 基于准备好的dom，初始化echarts实例
+      var fxMain = echarts.init(document.getElementById("fx_main"));
+      var mMmain = echarts.init(document.getElementById("m_main"));
+      var fMain = echarts.init(document.getElementById("f_main"));
+      var tMain = echarts.init(document.getElementById("t_main"));
+      var eMain1 = echarts.init(document.getElementById("e_main1"));
+      // var eMain2 = echarts.init(document.getElementById("e_main2"));
+      // var eMain3 = echarts.init(document.getElementById("e_main3"));
+      var bodyMain = echarts.init(document.getElementById("body_main"));
+      var footerMain = echarts.init(document.getElementById("footer_main"));
+      console.log(list);
+
+      var getFxMain = function () {
+        let cold = [];
+        let warm = [];
+        for (let i in list) {
+          if (type == 1) {
+            if (list[i]["Lighting"] == "cold")
+              cold.push([
+                (list[i]["ACC_low_1"] + list[i]["ACC_low_1"]) / 2,
+                2 / (list[i]["RT_low_1"] + list[i]["RT_low_2"]),
+                list[i]["Stress_low"],
+                list[i]["Name"],
+              ]);
+            if (list[i]["Lighting"] == "warm")
+              warm.push([
+                (list[i]["ACC_low_1"] + list[i]["ACC_low_1"]) / 2,
+                2 / (list[i]["RT_low_1"] + list[i]["RT_low_2"]),
+                list[i]["Stress_low"],
+                list[i]["Name"],
+              ]);
+          } else if (type == 2) {
+            if (list[i]["Lighting"] == "cold")
+              cold.push([
+                (list[i]["ACC_high_1"] + list[i]["ACC_high_1"]) / 2,
+                2 / (list[i]["RT_high_1"] + list[i]["RT_high_2"]),
+                list[i]["Stress_high"],
+                list[i]["Name"],
+              ]);
+            if (list[i]["Lighting"] == "warm")
+              warm.push([
+                (list[i]["ACC_high_1"] + list[i]["ACC_high_1"]) / 2,
+                2 / (list[i]["RT_high_1"] + list[i]["RT_high_2"]),
+                list[i]["Stress_high"],
+                list[i]["Name"],
+              ]);
+          }
+        }
+
+        //热力图
+        var option = {
+          title: {
+            text: "1/RT",
+          },
+          grid: {
+            left: "18%",
+            top: "10%",
+            bottom: 25,
+            right: 60,
+          },
+          tooltip: {
+            formatter(e) {
+              console.log(e);
+              return "ACC:" + e.data[0] + "<br/>" + "RT:" + e.data[1];
+            },
+          },
+          xAxis: {
+            name: "ACC",
+
+            nameTextStyle: {
+              fontSize: 18,
+              fontWeihght: "bold",
+              fontFamily: "Arial",
+
+              color: "#000",
+            },
+            splitLine: {
+              lineStyle: {
+                type: "dashed",
+              },
+            },
+            axisLabel: {
+              textStyle: {
+                fontSize: 16,
+              },
+            },
+            max: 1,
+          },
+          yAxis: {
+            splitLine: {
+              lineStyle: {
+                type: "dashed",
+              },
+            },
+            axisLabel: {
+              textStyle: {
+                fontSize: 16,
+              },
+            },
+            scale: true,
+            max: 0.00055,
+            min: 0,
+          },
+          series: [
+            {
+              name: "Cold",
+              data: cold,
+              type: "scatter",
+              symbolSize(e) {
+                return e[2] * 10;
+              },
+
+              itemStyle: {
+                color: "#b3b9d9",
+              },
+            },
+            {
+              name: "Warm",
+              data: warm,
+              type: "scatter",
+              symbolSize(e) {
+                return e[2] * 10;
+              },
+
+              itemStyle: {
+                color: "#ffd38f",
+              },
+            },
+          ],
+        };
+        fxMain.setOption(option);
+      };
+
+      var getMmain = function () {
+        let cold = [];
+        let warm = [];
+
+        if (type == 1) {
+          cold = [2221.001429, 2378.368571];
+
+          warm = [2443.508571, 2473.281429];
+        } else if (type == 2) {
+          cold = [3902.821429, 4024.015714];
+
+          warm = [4016.125714, 4067.978571];
+        }
+
+        var option = {
+          title: {
+            text: "Reaction Time",
+          },
+          color: ["#b3b9d9", "#ffd38f"],
+          tooltip: {
+            trigger: "axis",
+            axisPointer: {
+              type: "cross",
+              crossStyle: {
+                color: "#999",
+              },
+            },
+          },
+          grid: {
+            top: 40,
+            bottom: 25,
+            left: 50,
+            right: 20,
+          },
+          legend: {},
+          xAxis: [
+            {
+              type: "category",
+              data: ["male", "female"],
+
+              axisPointer: {
+                type: "shadow",
+              },
+              axisLabel: {
+                textStyle: {
+                  fontSize: 14,
+                },
+              },
+            },
+          ],
+          yAxis: [
+            {
+              type: "value",
+              min: 2000,
+              max: 4500,
+              axisLabel: {
+                textStyle: {
+                  fontSize: 14,
+                },
+              },
+            },
+          ],
+          series: [
+            {
+              name: "cold",
+              type: "bar",
+              data: cold,
+            },
+            {
+              name: "warm",
+              type: "bar",
+              data: warm,
+            },
+          ],
+        };
+        mMmain.setOption(option);
+      };
+
+      var getFmain = function () {
+        let cold = [];
+        let warm = [];
+
+        if (type == 1) {
+          cold = [0.98, 0.945714286];
+
+          warm = [0.961428571, 0.917142857];
+        } else if (type == 2) {
+          cold = [0.388571429, 0.401428571];
+
+          warm = [0.385714286, 0.392857143];
+        }
+
+        var option = {
+          title: {
+            text: "Accuracy",
+          },
+          color: ["#b3b9d9", "#ffd38f"],
+          tooltip: {
+            trigger: "axis",
+            axisPointer: {
+              type: "cross",
+              crossStyle: {
+                color: "#999",
+              },
+            },
+          },
+          grid: {
+            top: 30,
+            left: 50,
+            right: 20,
+            bottom: 25,
+          },
+          xAxis: [
+            {
+              type: "category",
+              data: ["male", "female"],
+              axisPointer: {
+                type: "shadow",
+              },
+              axisLabel: {
+                textStyle: {
+                  fontSize: 14,
+                },
+              },
+            },
+          ],
+          yAxis: [
+            {
+              type: "value",
+              min: 0.3,
+              max: 1,
+              axisLabel: {
+                textStyle: {
+                  fontSize: 14,
+                },
+              },
+            },
+          ],
+          series: [
+            {
+              name: "cold",
+              type: "bar",
+              data: cold,
+            },
+            {
+              name: "warm",
+              type: "bar",
+              data: warm,
+            },
+          ],
+        };
+        fMain.setOption(option);
+      };
+
+      var getTmain = function () {
+        let cold = [];
+        let warm = [];
+
+        if (type == 1) {
+          cold = [
+            25.64285714, 23, 29.85714286, 19.28571429, 37.21428571, 24.14285714,
+          ];
+
+          warm = [
+            25.57142857, 25.14285714, 26.85714286, 31, 35.78571429, 29.07142857,
+          ];
+        } else if (type == 2) {
+          cold = [
+            69.28571429, 59.28571429, 68.85714286, 45.85714286, 59.21428571,
+            72.21428571,
+          ];
+
+          warm = [
+            63.21428571, 72.07142857, 68.57142857, 52, 51.07142857, 67.21428571,
+          ];
+        }
+
+        var indicator = [
+          {
+            text: "Mental \n Demand",
+            min: 0,
+            max: 100,
+          },
+          {
+            text: "Physical \n Demand",
+            min: 0,
+            max: 100,
+          },
+          {
+            text: "Temporal \n Demand",
+            min: 0,
+            max: 100,
+          },
+          {
+            text: "Performance",
+            min: 0,
+            max: 100,
+          },
+          {
+            text: "Effort",
+            min: 0,
+            max: 100,
+          },
+          {
+            text: "Frustr\nation",
+            min: 0,
+            max: 100,
+          },
+        ];
+        var dataArr = [
+          {
+            value: cold,
+            name: "cold",
+          },
+          {
+            value: warm,
+            name: "warm",
+          },
+        ];
+
+        var option = {
+          title: {
+            text: "Task Load",
+          },
+          color: ["#b3b9d9", "#ffd38f"],
+
+          tooltip: {},
+          radar: {
+            // shape: 'circle',
+            name: {
+              textStyle: {
+                color: "#000000",
+                fontSize: 14,
+                fontWeihght: "800",
+              },
+            },
+            radius: "70%",
+            indicator: indicator,
+            splitArea: {
+              // 坐标轴在 grid 区域中的分隔区域，默认不显示。
+              show: true,
+              areaStyle: {
+                // 分隔区域的样式设置。
+                color: ["rgba(255,255,255,0)", "rgba(255,255,255,0)"], // 分隔区域颜色。分隔区域会按数组中颜色的顺序依次循环设置颜色。默认是一个深浅的间隔色。
+              },
+            },
+            axisLine: {
+              //指向外圈文本的分隔线样式
+              lineStyle: {
+                color: "#153269",
+              },
+            },
+            splitLine: {
+              lineStyle: {
+                color: "#113865", // 分隔线颜色
+                width: 1, // 分隔线线宽
+              },
+            },
+          },
+          series: [
+            {
+              type: "radar",
+              symbolSize: 8,
+              // symbol: 'angle',
+              data: dataArr,
+            },
+          ],
+        };
+        tMain.setOption(option);
+      };
+
+      var getEmain1 = function () {
+        // let data = [];
+
+        // if (type == 1) {
+        //   data = [
+        //     { value: "17.85714286", name: "Negative Emotion_cold" },
+        //     { value: "16.14285714", name: "Negative Emotion_warm" },
+        //     { value: "27.07142857", name: "Positive Emotion_cold" },
+        //     { value: "27.07142857", name: "Positive Emotion_warm" },
+        //   ];
+        // } else if (type == 2) {
+        //   data = [
+        //     { value: "25.5", name: "Negative Emotion_cold" },
+        //     { value: "24.42857143", name: "Negative Emotion_warm" },
+        //     { value: "47.21428571", name: "Positive Emotion_cold" },
+        //     { value: "56.64285714", name: "Positive Emotion_warm" },
+        //   ];
+        // }
+
+        let cold = [];
+        let warm = [];
+
+        if (type == 1) {
+          cold = [17.85714286, 27.07142857];
+
+          warm = [16.14285714, 27.07142857];
+        } else if (type == 2) {
+          cold = [25.5, 47.21428571];
+
+          warm = [24.42857143, 56.64285714];
+        }
+
+        var option = {
+          title: {
+            text: "Emotion",
+          },
+          color: ["#b3b9d9", "#ffd38f"],
+          tooltip: {
+            trigger: "axis",
+            axisPointer: {
+              type: "cross",
+              crossStyle: {
+                color: "#999",
+              },
+            },
+          },
+          grid: {
+            top: 30,
+            bottom: 25,
+            left: 50,
+            right: 20,
+          },
+
+          xAxis: [
+            {
+              type: "category",
+              data: ["Negative Emotion", "Positive Emotion"],
+
+              axisPointer: {
+                type: "shadow",
+              },
+              axisLabel: {
+                textStyle: {
+                  fontSize: 14,
+                },
+              },
+            },
+          ],
+          yAxis: [
+            {
+              type: "value",
+              min: 0,
+              max: 60,
+              axisLabel: {
+                textStyle: {
+                  fontSize: 14,
+                },
+              },
+            },
+          ],
+          series: [
+            {
+              name: "cold",
+              type: "bar",
+              data: cold,
+            },
+            {
+              name: "warm",
+              type: "bar",
+              data: warm,
+            },
+          ],
+        };
+        eMain1.setOption(option);
+      };
+      // var getEmain2 = function () {
+      //   let data = [];
+
+      //   if (type == 1) {
+      //     data = [
+      //       { value: "6", name: "Stress_warm_1 " },
+      //       { value: "7", name: "Stress_warm_2 " },
+      //       { value: "1", name: "Stress_warm_3 " },
+      //       { value: "0", name: "Stress_warm_4 " },
+      //       { value: "0", name: "Stress_warm_5 " },
+
+      //       { value: "4", name: "Stress_cold_1 " },
+      //       { value: "9", name: "Stress_cold_2 " },
+      //       { value: "1", name: "Stress_cold_3 " },
+      //       { value: "0", name: "Stress_cold_4 " },
+      //       { value: "0", name: "Stress_cold_5 " },
+      //     ];
+      //   } else if (type == 2) {
+      //     data = [
+      //       { value: "3", name: "Stress_warm_1 " },
+      //       { value: "3", name: "Stress_warm_2 " },
+      //       { value: "5", name: "Stress_warm_3 " },
+      //       { value: "3", name: "Stress_warm_4 " },
+      //       { value: "0", name: "Stress_warm_5 " },
+
+      //       { value: "2", name: "Stress_cold_1 " },
+      //       { value: "3", name: "Stress_cold_2 " },
+      //       { value: "4", name: "Stress_cold_3 " },
+      //       { value: "6", name: "Stress_cold_4 " },
+      //       { value: "0", name: "Stress_cold_5 " },
+      //     ];
+      //   }
+
+      //   var option = {
+      //     color: ["#b3b9d9", "#ffd38f"],
+
+      //     grid: {
+      //       top: 40,
+      //       bottom: 20,
+      //       left: 120,
+      //     },
+
+      //     xAxis: {
+      //       type: "value",
+      //       max: "dataMax",
+      //       splitLine: {
+      //         lineStyle: {
+      //           color: "rgba(255, 255, 255, 0.15)",
+      //         },
+      //       },
+      //       splitArea: {
+      //         show: false,
+      //       },
+      //     },
+      //     yAxis: {
+      //       type: "category",
+      //       axisTick: {
+      //         show: false,
+      //       },
+      //       axisLine: {
+      //         show: false,
+      //       },
+      //       axisLabel: {
+      //         show: true,
+      //         textStyle: {
+      //           color: "#6A93B9",
+      //           fontSize: 12,
+      //         },
+      //       },
+      //       data: ["Kss"],
+      //     },
+      //     tooltip: {
+      //       formatter(e) {
+      //         return e.data.name + ":" + e.data.value;
+      //       },
+      //     },
+
+      //     series: [
+      //       {
+      //         name: "warm",
+      //         type: "bar",
+      //         stack: "total",
+      //         data: [data[0]],
+      //       },
+      //       {
+      //         name: "warm",
+      //         type: "bar",
+      //         stack: "total",
+      //         data: [data[1]],
+      //       },
+      //       {
+      //         name: "warm",
+      //         type: "bar",
+      //         stack: "total",
+      //         data: [data[2]],
+      //       },
+      //       {
+      //         name: "warm",
+      //         type: "bar",
+      //         stack: "total",
+      //         data: [data[3]],
+      //       },
+      //       {
+      //         name: "warm",
+      //         type: "bar",
+      //         stack: "total",
+      //         data: [data[4]],
+      //       },
+      //       {
+      //         name: "cold",
+      //         type: "bar",
+      //         stack: "total",
+      //         data: [data[5]],
+      //       },
+      //       {
+      //         name: "cold",
+      //         type: "bar",
+      //         stack: "total",
+      //         data: [data[6]],
+      //       },
+      //       {
+      //         name: "cold",
+      //         type: "bar",
+      //         stack: "total",
+      //         data: [data[7]],
+      //       },
+      //       {
+      //         name: "cold",
+      //         type: "bar",
+      //         stack: "total",
+      //         data: [data[8]],
+      //       },
+      //       {
+      //         name: "cold",
+      //         type: "bar",
+      //         stack: "total",
+      //         data: [data[9]],
+      //       },
+      //     ],
+      //   };
+      //   eMain2.setOption(option);
+      // };
+      // var getEmain3 = function () {
+      //   let data = [];
+
+      //   if (type == 1) {
+      //     data = [
+      //       { value: "0", name: "KSS_warm_1 " },
+      //       { value: "0", name: "KSS_warm_2 " },
+      //       { value: "2", name: "KSS_warm_3 " },
+      //       { value: "3", name: "KSS_warm_4 " },
+      //       { value: "2", name: "KSS_warm_5 " },
+      //       { value: "4", name: "KSS_warm_6 " },
+      //       { value: "1", name: "KSS_warm_7 " },
+      //       { value: "1", name: "KSS_warm_8 " },
+      //       { value: "1", name: "KSS_warm_9 " },
+      //       { value: "0", name: "KSS_warm_10 " },
+
+      //       { value: "0", name: "KSS_cold_1 " },
+      //       { value: "0", name: "KSS_cold_2 " },
+      //       { value: "0", name: "KSS_cold_3 " },
+      //       { value: "4", name: "KSS_cold_4 " },
+      //       { value: "1", name: "KSS_cold_5 " },
+      //       { value: "2", name: "KSS_cold_6 " },
+      //       { value: "5", name: "KSS_cold_7 " },
+      //       { value: "2", name: "KSS_cold_8 " },
+      //       { value: "0", name: "KSS_cold_9 " },
+      //       { value: "0", name: "KSS_cold_10" },
+      //     ];
+      //   } else if (type == 2) {
+      //     data = [
+      //       { value: "0", name: "KSS_warm_1 " },
+      //       { value: "0", name: "KSS_warm_2 " },
+      //       { value: "0", name: "KSS_warm_3 " },
+      //       { value: "1", name: "KSS_warm_4 " },
+      //       { value: "0", name: "KSS_warm_5 " },
+      //       { value: "1", name: "KSS_warm_6 " },
+      //       { value: "4", name: "KSS_warm_7 " },
+      //       { value: "5", name: "KSS_warm_8 " },
+      //       { value: "3", name: "KSS_warm_9 " },
+      //       { value: "0", name: "KSS_warm_10 " },
+
+      //       { value: "0", name: "KSS_cold_1 " },
+      //       { value: "0", name: "KSS_cold_2 " },
+      //       { value: "0", name: "KSS_cold_3 " },
+      //       { value: "1", name: "KSS_cold_4 " },
+      //       { value: "1", name: "KSS_cold_5 " },
+      //       { value: "0", name: "KSS_cold_6 " },
+      //       { value: "3", name: "KSS_cold_7 " },
+      //       { value: "5", name: "KSS_cold_8 " },
+      //       { value: "3", name: "KSS_cold_9 " },
+      //       { value: "1", name: "KSS_cold_10" },
+      //     ];
+      //   }
+
+      //   var option = {
+      //     color: ["#b3b9d9", "#ffd38f"],
+
+      //     grid: {
+      //       top: 40,
+      //       bottom: 20,
+      //       left: 120,
+      //     },
+
+      //     xAxis: {
+      //       type: "value",
+      //       max: "dataMax",
+      //       splitLine: {
+      //         lineStyle: {
+      //           color: "rgba(255, 255, 255, 0.15)",
+      //         },
+      //       },
+      //       splitArea: {
+      //         show: false,
+      //       },
+      //     },
+      //     yAxis: {
+      //       type: "category",
+      //       axisTick: {
+      //         show: false,
+      //       },
+      //       axisLine: {
+      //         show: false,
+      //       },
+      //       axisLabel: {
+      //         show: true,
+      //         textStyle: {
+      //           color: "#6A93B9",
+      //           fontSize: 12,
+      //         },
+      //       },
+      //       data: ["Stress"],
+      //     },
+      //     tooltip: {
+      //       formatter(e) {
+      //         return e.data.name + ":" + e.data.value;
+      //       },
+      //     },
+
+      //     series: [
+      //       {
+      //         name: "warm",
+      //         type: "bar",
+      //         stack: "total",
+      //         data: [data[0]],
+      //       },
+      //       {
+      //         name: "warm",
+      //         type: "bar",
+      //         stack: "total",
+      //         data: [data[1]],
+      //       },
+      //       {
+      //         name: "warm",
+      //         type: "bar",
+      //         stack: "total",
+      //         data: [data[2]],
+      //       },
+      //       {
+      //         name: "warm",
+      //         type: "bar",
+      //         stack: "total",
+      //         data: [data[3]],
+      //       },
+      //       {
+      //         name: "warm",
+      //         type: "bar",
+      //         stack: "total",
+      //         data: [data[4]],
+      //       },
+      //       {
+      //         name: "warm",
+      //         type: "bar",
+      //         stack: "total",
+      //         data: [data[5]],
+      //       },
+      //       {
+      //         name: "warm",
+      //         type: "bar",
+      //         stack: "total",
+      //         data: [data[6]],
+      //       },
+      //       {
+      //         name: "warm",
+      //         type: "bar",
+      //         stack: "total",
+      //         data: [data[7]],
+      //       },
+      //       {
+      //         name: "warm",
+      //         type: "bar",
+      //         stack: "total",
+      //         data: [data[8]],
+      //       },
+      //       {
+      //         name: "warm",
+      //         type: "bar",
+      //         stack: "total",
+      //         data: [data[9]],
+      //       },
+      //       {
+      //         name: "cold",
+      //         type: "bar",
+      //         stack: "total",
+      //         data: [data[10]],
+      //       },
+      //       {
+      //         name: "cold",
+      //         type: "bar",
+      //         stack: "total",
+      //         data: [data[11]],
+      //       },
+      //       {
+      //         name: "cold",
+      //         type: "bar",
+      //         stack: "total",
+      //         data: [data[12]],
+      //       },
+      //       {
+      //         name: "cold",
+      //         type: "bar",
+      //         stack: "total",
+      //         data: [data[13]],
+      //       },
+      //       {
+      //         name: "cold",
+      //         type: "bar",
+      //         stack: "total",
+      //         data: [data[14]],
+      //       },
+      //       {
+      //         name: "cold",
+      //         type: "bar",
+      //         stack: "total",
+      //         data: [data[15]],
+      //       },
+      //       {
+      //         name: "cold",
+      //         type: "bar",
+      //         stack: "total",
+      //         data: [data[16]],
+      //       },
+      //       {
+      //         name: "cold",
+      //         type: "bar",
+      //         stack: "total",
+      //         data: [data[17]],
+      //       },
+      //       {
+      //         name: "cold",
+      //         type: "bar",
+      //         stack: "total",
+      //         data: [data[18]],
+      //       },
+      //       {
+      //         name: "cold",
+      //         type: "bar",
+      //         stack: "total",
+      //         data: [data[19]],
+      //       },
+      //     ],
+      //   };
+      //   eMain3.setOption(option);
+      // };
+
+      var getBodyMain = function () {
+        let ripUse = [];
+        let time = [];
+        let data = [];
+        if (type == 1) {
+          ripUse = rip.slice(0, rip.length / 2);
+        } else {
+          ripUse = rip.slice(rip.length / 2, rip.length);
+        }
+        for (let i in ripUse) {
+          time.push(ripUse[i].time);
+          data.push(ripUse[i].value);
+        }
+        var option = {
+          color: "#b3b9d9",
+          title: {
+            text: "RIP",
+          },
+          tooltip: {},
+          dataZoom: {},
+          xAxis: {
+            type: "category",
+            data: time,
+          },
+          yAxis: {
+            type: "value",
+          },
+          grid: {
+            containLabel: true,
+            top: 20,
+            bottom: 20,
+            left: "60",
+
+            right: "40",
+          },
+          color: ["#5a72e0"],
+          series: [
+            {
+              data: data,
+              type: "line",
+              smooth: true,
+            },
+          ],
+        };
+        bodyMain.setOption(option);
+      };
+      var getFooterMain = function () {
+        let emgUse = [];
+        let time = [];
+        let data = [];
+        if (type == 1) {
+          emgUse = emg.slice(0, emg.length / 2);
+        } else {
+          emgUse = emg.slice(emg.length / 2, emg.length);
+        }
+        for (let i in emgUse) {
+          time.push(emgUse[i].time);
+          data.push(emgUse[i].value);
+        }
+        var option = {
+          color: "#b3b9d9",
+          title: {
+            text: "EMG",
+          },
+          tooltip: {},
+          xAxis: {
+            type: "category",
+            data: time,
+          },
+          yAxis: {
+            type: "value",
+          },
+          dataZoom: {},
+          grid: {
+            containLabel: true,
+            left: "60",
+            top: 20,
+            bottom: 20,
+            right: "40",
+          },
+          color: ["#5a72e0"],
+          series: [
+            {
+              data: data,
+              type: "line",
+              smooth: true,
+            },
+          ],
+        };
+        footerMain.setOption(option);
+      };
+      render();
+      function changeType(e) {
+        type = e;
+        if (e == 1) {
+          document.getElementById("nav1").className = "highLight";
+          document.getElementById("nav2").className = "";
+        } else {
+          document.getElementById("nav2").className = "highLight";
+          document.getElementById("nav1").className = "";
+        }
+
+        render();
+      }
+
+      function render() {
+        getFxMain();
+        getMmain();
+        getFmain();
+        getTmain();
+        getEmain1();
+        // getEmain2();
+        // getEmain3();
+        getBodyMain();
+        getFooterMain();
+      }
+
+      window.onresize = () => {
+        fxMain.resize();
+        mMmain.resize();
+        fMain.resize();
+        tMain.resize();
+        eMain1.resize();
+        // eMain2.resize();
+        // eMain3.resize();
+        bodyMain.resize();
+        footerMain.resize();
+      };
+    </script>
+  </body>
+</html>
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+  }
+  .top {
+    width: 100%;
+    height: 5vh;
+    background-color: #b3b9d9;
+
+    padding-left: 20px;
+    display: flex;
+    align-items: center;
+    color: white;
+    box-sizing: border-box;
+  }
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .fm_main,
+  .te_main {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .nav {
+    display: flex;
+  }
+  .nav div {
+    width: 200px;
+    height: 5vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid black;
+    cursor: pointer;
+    box-sizing: border-box;
+    margin-top: 2vh;
+  }
+
+  .highLight {
+    background-color: #b3b9d9;
+    color: white;
+  }
+</style>
